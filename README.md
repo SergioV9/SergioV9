@@ -1,16 +1,23 @@
-## Hi there 👋
+# 🚀 Mi Portafolio de Proyectos
 
-<!--
-**SergioV9/SergioV9** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+¡Hola! Soy Sergio Villacampa y este repositorio contiene proyectos personales donde aplico mis conocimientos para resolver problemas.
 
-Here are some ideas to get you started:
+## 📊 Proyectos Destacados
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+### 1. 🏭 Sistema MRP en Excel con VBA
+**Herramientas:** Excel, VBA, Gestión de Producción
+
+Sistema de Planificación de Requerimientos de Materiales (MRP) que automatiza el cálculo del Plan Maestro de Producción (MPS) a partir de las listas de materiales (BOM).
+
+[**Ver proyecto →**](./MRP/)
+
+### 2. 🏀 Gestor de Torneos de Baloncesto
+**Herramientas:** Python, JSON, HTML, CSS
+
+Aplicación web local para organizar torneos de baloncesto, con gestión completa de ligas y playoffs, incluyendo seguimiento de estadísticas de jugadores.
+
+[**Ver proyecto →**](./TorneoNBA/)
+
+---
+
+📫 **Conectemos:** [[Tu LinkedIn](https://www.linkedin.com/in/sergio-villacampa-324039259/)] | [svillacamparacero@gmail.com]
