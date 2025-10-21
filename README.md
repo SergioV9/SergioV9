@@ -16,7 +16,7 @@ Sistema de Planificación de Requerimientos de Materiales (MRP) que automatiza e
 
 Aplicación web local para organizar torneos de baloncesto, con gestión completa de ligas y playoffs, incluyendo seguimiento de estadísticas de jugadores.
 
-[**Ver proyecto →**](./Torneo Baloncesto/)
+[**Ver proyecto →**](./TorneoBaloncesto/)
 
 ---
 
