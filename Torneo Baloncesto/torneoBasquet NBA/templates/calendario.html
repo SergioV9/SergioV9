@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario - Torneo de Baloncesto</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .jornadas-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .jornada {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .partidos-grid {
+            display:flex;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .partido {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid #0056b3;
+        }
+        
+        .encuentro {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .equipo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .resultado {
+            font-weight: bold;
+            font-size: 1.1em;
+            background: #0056b3;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        
+        .top-jugadores {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
+            border-top: 1px dashed #ddd;
+            padding-top: 8px;
+        }
+        
+        .top-jugadores div {
+            margin: 4px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .jugador-puntos {
+            font-weight: bold;
+            color: #0056b3;
+        }
+
+        .partidos-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .partidos-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .CC{
+            display: flex;
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Torneo de Baloncesto</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Clasificación</a></li>
+                <li><a href="/calendario">Calendario</a></li>
+                <li><a href="/estadisticas">Estadísticas</a></li>
+                <li><a href="/playoffs">Playoffs</a></li>
+                
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="calendario">
+            <h2>Calendario de Partidos</h2>
+            <span class="CC"><a href="/crearCalendario">Crear Nuevo Calendario</a></span>
+            <div id="jornadas-container">
+                <!-- Se generará dinámicamente -->
+            </div>
+        </section>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/partidos')
+            .then(response => response.json())
+            .then(data => {
+                const jornadasContainer = document.getElementById('jornadas-container');
+                const jornadas = {};
+                
+                // Agrupar partidos por jornada
+                Object.values(data).forEach(partido => {
+                    if (!jornadas[partido.Jornada]) {
+                        jornadas[partido.Jornada] = [];
+                    }
+                    jornadas[partido.Jornada].push(partido);
+                });
+                
+                // Crear divs por jornada
+                Object.keys(jornadas).sort().forEach(jornada => {
+                    const jornadaDiv = document.createElement('div');
+                    jornadaDiv.className = 'jornada';
+                    jornadaDiv.innerHTML = `<h3>Jornada ${jornada}</h3>`;
+                    
+                    const partidosGrid = document.createElement('div');
+                    partidosGrid.className = 'partidos-grid';
+                    
+                    // Agregar partidos en grupos de 2
+                    const partidosJornada = jornadas[jornada];
+                    for (let i = 0; i < partidosJornada.length; i += 1) {
+                        const rowDiv = document.createElement('div');
+                        rowDiv.className = 'partidos-row';
+                        
+                        // Primer partido
+                        //if (partidosJornada[i]) {
+                            rowDiv.appendChild(crearPartidoElement(partidosJornada[i]));
+                        //}
+                        
+                        // Segundo partido
+                        //if (partidosJornada[i+1]) {
+                            //rowDiv.appendChild(crearPartidoElement(partidosJornada[i+1]));
+                        //}
+                        
+                        partidosGrid.appendChild(rowDiv);
+                    }
+                    
+                    jornadaDiv.appendChild(partidosGrid);
+                    jornadasContainer.appendChild(jornadaDiv);
+                });
+            });
+                
+        function crearPartidoElement(partido) {
+            const partidoDiv = document.createElement('div');
+            partidoDiv.className = 'partido';
+            
+            // Obtener top 3 jugadores del partido (combinando ambos equipos)
+            const todosJugadores = [
+                ...Object.entries(partido.local.jugadores).map(([nombre, stats]) => ({
+                    nombre, 
+                    puntos: stats.puntos,
+                    equipo: partido.local.nombre
+                })),
+                ...Object.entries(partido.visitante.jugadores).map(([nombre, stats]) => ({
+                    nombre, 
+                    puntos: stats.puntos,
+                    equipo: partido.visitante.nombre
+                }))
+            ];
+            
+            const topJugadores = todosJugadores
+                .sort((a, b) => b.puntos - a.puntos)
+                .slice(0, 3);
+            
+            partidoDiv.innerHTML = `
+                <div class="encuentro">
+                    <div class="equipo">
+                        <span>${partido.local.nombre}</span>
+                        <span class="resultado">${partido.puntosLocal}</span>
+                    </div>
+                    <span>vs</span>
+                    <div class="equipo">
+                        <span class="resultado">${partido.puntosVisitante}</span>
+                        <span>${partido.visitante.nombre}</span>
+                    </div>
+                </div>
+                <div class="top-jugadores">
+                    <div><strong>Mejores jugadores:</strong></div>
+                    ${topJugadores.map(j => `
+                        <div>
+                            <span>${j.nombre} (${j.equipo})</span>
+                            <span class="jugador-puntos">${j.puntos} pts</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            return partidoDiv;
+        }
+    });
+    </script>
+</body>
+</html>

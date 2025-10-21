@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clasificación - Torneo de Baloncesto</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .grupo-clasificacion {
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th, td {
+            padding: 8px 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .pos-1 { background-color: #d4edda; }
+        .pos-2 { background-color: #e6f3e6; }
+        .pos-3 { background-color: #f8f9fa; }
+        .pos-playoffs { background-color: #fff3cd; }
+        .pos-out { background-color: #f8d7da; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Torneo de Baloncesto</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Clasificación</a></li>
+                <li><a href="/calendario">Calendario</a></li>
+                <li><a href="/estadisticas">Estadísticas</a></li>
+                <li><a href="/playoffs">Playoffs</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="clasificacion">
+            <h2>Clasificación</h2>
+            <div id="grupos-container">
+                <!-- Los grupos se generarán dinámicamente -->
+            </div>
+        </section>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/partidos')
+            .then(response => {
+                if (!response.ok) throw new Error('Error al cargar datos');
+                return response.json();
+            })
+            .then(data => {
+                const equipos = {};
+                const grupos = new Set();
+                
+                // Procesar todos los partidos
+                Object.values(data).forEach(partido => {
+                    if (partido.Playoffs === "no") {
+                        procesarEquipo(partido.local, equipos, partido);
+                        procesarEquipo(partido.visitante, equipos, partido);
+                        grupos.add(partido.local.grupo);
+                        grupos.add(partido.visitante.grupo);
+                    }
+                });
+                
+                // Ordenar grupos alfabéticamente
+                const gruposOrdenados = Array.from(grupos).sort();
+                
+                // Mostrar clasificación por grupos
+                const gruposContainer = document.getElementById('grupos-container');
+                gruposOrdenados.forEach(grupo => {
+                    const grupoDiv = document.createElement('div');
+                    grupoDiv.className = 'grupo-clasificacion';
+                    grupoDiv.innerHTML = `<h3>Grupo ${grupo}</h3>`;
+                    
+                    const tabla = document.createElement('table');
+                    tabla.innerHTML = `
+                        <thead>
+                            <tr>
+                                <th>Pos</th>
+                                <th>Equipo</th>
+                                <th>PG</th>
+                                <th>PP</th>
+                                <th>%V</th>
+                                <th>PF</th>
+                                <th>PC</th>
+                                <th>DP</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-${grupo}"></tbody>
+                    `;
+                    
+                    // Filtrar equipos del grupo y ordenar al estilo NBA
+                    const equiposGrupo = Object.values(equipos)
+                        .filter(e => e.grupo === grupo);
+                    
+                    const equiposOrdenados = ordenarClasificacionNBA(equiposGrupo);
+                    
+                    // Llenar tabla
+                    const tbody = tabla.querySelector('tbody');
+                    equiposOrdenados.forEach((equipo, index) => {
+                        const porcentajeVictorias = equipo.PJ > 0 ? (equipo.PG / (equipo.PG + equipo.PP) * 100).toFixed(1) : 0;
+                        const difPuntos = equipo.PF - equipo.PC;
+                        
+                        // Determinar clase CSS según posición
+                        let rowClass = '';
+                        if (index === 0) rowClass = 'pos-1';
+                        else if (index === 1) rowClass = 'pos-2';
+                        else if (index === 2) rowClass = 'pos-3';
+                        else if (index < 8) rowClass = 'pos-playoffs'; // Top 8 van a playoffs
+                        else rowClass = 'pos-out';
+                        
+                        tbody.innerHTML += `
+                            <tr class="${rowClass}">
+                                <td>${index + 1}</td>
+                                <td>${equipo.nombre}</td>
+                                <td>${equipo.PG}</td>
+                                <td>${equipo.PP}</td>
+                                <td>${porcentajeVictorias}%</td>
+                                <td>${equipo.PF}</td>
+                                <td>${equipo.PC}</td>
+                                <td>${difPuntos > 0 ? '+' : ''}${difPuntos}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    grupoDiv.appendChild(tabla);
+                    gruposContainer.appendChild(grupoDiv);
+                });
+                
+                function procesarEquipo(equipoData, equipos, partido) {
+                    if (!equipos[equipoData.nombre]) {
+                        equipos[equipoData.nombre] = {
+                            nombre: equipoData.nombre,
+                            grupo: equipoData.grupo,
+                            PJ: 0, PG: 0, PP: 0, PF: 0, PC: 0,
+                            difPuntos: 0,
+                            enfrentamientos: {}
+                        };
+                    }
+                    
+                    const equipo = equipos[equipoData.nombre];
+                    const rivalNombre = equipoData === partido.local ? partido.visitante.nombre : partido.local.nombre;
+                    const puntosEquipo = equipoData === partido.local ? partido.puntosLocal : partido.puntosVisitante;
+                    const puntosRival = equipoData === partido.local ? partido.puntosVisitante : partido.puntosLocal;
+                    
+                    equipo.PJ += 1;
+                    equipo.PF += puntosEquipo;
+                    equipo.PC += puntosRival;
+                    equipo.difPuntos = equipo.PF - equipo.PC;
+                    
+                    // Determinar si es victoria o derrota
+                    const esVictoria = puntosEquipo > puntosRival;
+                    
+                    if (esVictoria) {
+                        equipo.PG += 1;
+                    } else {
+                        if (puntosEquipo != puntosRival) {
+                            equipo.PP += 1;
+                        }
+                    }
+                    
+                    // Registrar enfrentamiento directo
+                    if (!equipo.enfrentamientos[rivalNombre]) {
+                        equipo.enfrentamientos[rivalNombre] = { PG: 0, PP: 0 };
+                    }
+                    
+                    if (esVictoria) {
+                        equipo.enfrentamientos[rivalNombre].PG += 1;
+                    } else {
+                        equipo.enfrentamientos[rivalNombre].PP += 1;
+                    }
+                }
+                
+                function ordenarClasificacionNBA(equipos) {
+                    return equipos.sort((a, b) => {
+                        // 1. Por porcentaje de victorias
+                        const porcentajeA = a.PJ > 0 ? a.PG / a.PJ : 0;
+                        const porcentajeB = b.PJ > 0 ? b.PG / b.PJ : 0;
+                        
+                        if (porcentajeA !== porcentajeB) {
+                            return porcentajeB - porcentajeA;
+                        }
+                        
+                        // 2. Enfrentamiento directo (solo si se han enfrentado al menos 2 veces)
+                        if (a.enfrentamientos[b.nombre] && b.enfrentamientos[a.nombre]) {
+                            const totalPG_A = a.enfrentamientos[b.nombre].PG + b.enfrentamientos[a.nombre].PP;
+                            const totalPG_B = a.enfrentamientos[b.nombre].PP + b.enfrentamientos[a.nombre].PG;
+                            
+                            if (totalPG_A !== totalPG_B) {
+                                return totalPG_B - totalPG_A;
+                            }
+                        }
+                        
+                        // 3. Diferencia de puntos en todos los partidos
+                        if (a.difPuntos !== b.difPuntos) {
+                            return b.difPuntos - a.difPuntos;
+                        }
+                        
+                        // 4. Más puntos anotados
+                        return b.PF - a.PF;
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('grupos-container').innerHTML = 
+                    `<p class="error">Error al cargar la clasificación: ${error.message}</p>`;
+            });
+    });
+    </script>
+</body>
+</html>
