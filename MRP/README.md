@@ -6,7 +6,7 @@ Sistema desarrollado en Excel con VBA que automatiza el proceso de Planificació
 
 ## 🎯 Objetivo
 
-Automatizar los cálculos complejos de planificación de producción que normalmente se realizan manualmente, reduciendo errores y tiempo de procesamiento.
+Automatizar los cálculos de planificación de producción.
 
 ## ⚙️ Funcionalidades Principales
 
