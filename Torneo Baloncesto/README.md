@@ -42,7 +42,10 @@ Creé esta aplicación porque el videojuego que usaba con mi familia no permití
     - Extra: si quieres que en la pestaña de playoffs aparazcan los equipos con sus escudos, engancha las fotos con el nombre del equipo y extensión .jpg en la carpeta de img (ya hay varios escudos que vienen en el proyecto, solo pon aquellos equipos que aparazcan sin su escudo)
   - Una vez introducidos todos los datos de todos los equipos que juegan, confirmalos y ya estas listo para empezar a disfrutar del torneo
 - **Introducir datos de partido:**
-  - 
+  - Los datos se pueden introducir de dos maneras
+    - 1ª: Poner solo el resultado del partido: Esta opción es la mas fácil y la mas rápida pero de esta manera no habrá estadísticas de equipo ni de jugadores. Si tu eres una persona que las estadísticas no las miras o que quieres jugar un torneo rápido con todas las opciones (clasificación, calendario y playoffs) menos la pestaña de estadisticas, esta es tu mejor opción
+      - Para esto solamente has de abrir el documento partidos.json y encontrar el partido que has jugado (estan ordenados en orden) y poner el resultado de cada equipo en su  sitio (puntosLocal o puntosVisitante)
+    - 2ª:
 
 ### Prerrequisitos
 - Ninguno, ya que no usa ninguna dependencia.
