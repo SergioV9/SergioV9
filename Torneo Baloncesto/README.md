@@ -33,6 +33,10 @@ Creé esta aplicación porque el videojuego que usaba con mi familia no permití
 ## 🚀 Instalación y Uso
 
 ### Como usar
+- **Explicación rápida:**
+  - Solo consta de dos pasos:
+    - Introducción de equipos para que se cree la clasificación de los grupos y el calendario
+    - Actualización de los resultados de los partido para que el torneo vaya avanzando hacia su desenlace
 - **Introducir equipos:**
   - Lo primero de todo es introducir los equipos que jugaran este torneo, para ello nos dirigimos a la pestaña de calendario y le damos a "Crear Nuevo Calendario" (esto borrara todos los datos, si hay alguno, del torneo, así que primero asegurate que no te importa perderlos o copiales en otra parte)
   - A la hora de introducir los datos te pedira 3 datos para cada equipo;
@@ -43,9 +47,11 @@ Creé esta aplicación porque el videojuego que usaba con mi familia no permití
   - Una vez introducidos todos los datos de todos los equipos que juegan, confirmalos y ya estas listo para empezar a disfrutar del torneo
 - **Introducir datos de partido:**
   - Los datos se pueden introducir de dos maneras
-    - 1ª: Poner solo el resultado del partido: Esta opción es la mas fácil y la mas rápida pero de esta manera no habrá estadísticas de equipo ni de jugadores. Si tu eres una persona que las estadísticas no las miras o que quieres jugar un torneo rápido con todas las opciones (clasificación, calendario y playoffs) menos la pestaña de estadisticas, esta es tu mejor opción
-      - Para esto solamente has de abrir el documento partidos.json y encontrar el partido que has jugado (estan ordenados en orden) y poner el resultado de cada equipo en su  sitio (puntosLocal o puntosVisitante)
-    - 2ª:
+    - 1ª: Poner solo el resultado del partido: Esta opción es la mas fácil y la mas rápida pero de esta manera no habrá estadísticas de equipo ni de jugadores. Si tu eres una persona que las estadísticas no las miras o que quieres jugar un torneo rápido con todas las opciones (clasificación, calendario y playoffs) menos la pestaña de estadisticas, esta es tu mejor opción.
+      - Para esto solamente has de abrir el documento partidos.json y encontrar el partido que has jugado (estan ordenados en orden) y poner el resultado de cada equipo en su respectiva variable (puntosLocal o puntosVisitante)
+    - 2ª: Poner los datos del partido completos: Esta opción es más larga pero te permite disfrutar de todas las características de este proyecto. Esto se puede hacer de dos maneras, una con IA (muy recomendado ya que te quita mucho trabajo) y otra introduciendo los datos a mano (que puede hacerse un poco pesado)
+      - Introducir datos con IA: En este caso es importante tener en cuenta el archivo read.txt dentro del proyecto donde esta el script que hay que pasarle a la IA para que te haga el codigo que se necesita para el json (IMPORTANTE leerse la parte escrita ya que hay que hacer un par de pequeños cambios). En este mismo chat también le pasaremos los datos del partido y estos seran en un formato de foto ya que es lo más rápido y fácil (la foto se ha de sacar al acabar el partido del juego, donde el propio juego te muestra las estadísticas de un equipo y otro). Una vez que ya le hayas pasado el script y las fotos de los datos de los equipos, la IA empezará a generar el codigo json para nuestro partido en específico, que tendra que ser reemplazado por el código de nuestro mismo partido en nuestro archivo json (ya que este no tiene los valores).
+      - Introducir datos manualmente: Esta opción no necesita IA ya que los datos los pones tu modificando el propio archivo json. Para esto solo has de encontrar el partido que se ha jugado y ir cambiando los datos de los equipos y jugadores uno por uno, si lo haces de esta manera puedes escoger que estadisticas poner y cuales no (ya que ponerlas todas puede llevarte un tiempo). Es recomendable probar la otra opción primero ya que te ahorrara mucho tiempo
 
 ### Prerrequisitos
 - Ninguno, ya que no usa ninguna dependencia.
