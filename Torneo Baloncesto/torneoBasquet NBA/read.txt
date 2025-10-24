@@ -10,6 +10,7 @@ ESTRUCTURA DE LOS DATOS EXTRA A LA HORA DE PASAR LA FOTO A LA IA:
 {el numero del partido}, {el atributo eliminatoria}, {atributo de numPartido}, {nombre del equipo local}, {nombre del equipo visitante}
 
 -PROMPT PARA PASAR A LA IA PARA QUE TE CREE LOS JSON
+--------------------------------DESDE AQUÍ------------------------------------------
 He creado una liga de la nba en un proyecto de python y tiene un json, yo necesito tu ayuda con el json. 
 Esta es la estructura del json: 
 "Partido1": {
@@ -204,8 +205,12 @@ Esta es la estructura del json:
     },. 
 Los datos estan inventados. Proximamente Te pasare dos imagenes, en estas esta la información que me tienes que poner en el json (siempre aparte de las fotos te pasare un poco de información para que puedas ponerla en el json, el formato sera el siguiente: {el numero del partido}, {el atributo jornada}, {nombre del equipo local}, {nombre del equipo visitante}). Te lo digo pero creo que es obvio, salen todas las estadisticas de los jugadores menos tiros2Anotados y tiros2Intentados, que consiguen restando los tiros totales entre los tiros de 3 y los puntos totales de los equipos se calcula sumando los puntos de los jugadores de ese equipo. En la foto salen mas de 5 jugadores, pero tu solo has de tener en cuenta aquellos jugadores que tengan almenos una estadistica mayor a 1(ya sea que solo tenga 1 punto o 1 rebote o 1 tiroIntentado(si un jugador no ha hecho ningun punto pero si que tiene alguna estadistica por encima de 1, ya se rebotes, asistencias, tirosDeCampoIntentados o cualquier otra tambien se ha de poner, repito,  aunque el jugador haya hecho 0 puntos pero tenga alguna otra estadistica mayor a 1 quiero que me lo pongas en el json)) (en el caso de que un equipo tenga a 6 jugadores con almenos una estadistica mayor a uno (ya sea que solo tenga un rebote, una asistencia o un tiro de campo intentado o anotado), tendras que editar el json para añadir a ese 6 jugador dentro del equipo al que corresponda).
 Varias cosas: 1. Los puntos totales de los equipos se sacan de la suma de los puntos de sus jugadores. 2.El primer atributo que te proporciono se refiere solo al atributo padre (Partido"x", deja el atributo numPartido vacio). 3.Esto lo tendras que tener en cuenta para todas los siguientes json: (Grupo A: Cleveland, Toronto, Knicks, Philadelphia, Milwaukee, Detroit. Grupo B: OKC, Dallas, Golden, Clippers, Minnesota, Spurs)(Bombo 1:Knicks, Philadelphia, Clippers, Golden. Bombo 2: Milwaukee, Detroit, Minnesota, Spurs. Bombo 3: Cleveland, Toronto, OKC, Dallas).
+--------------------------------HASTA AQUÍ------------------------------------------
 
+------------------------------MUY IMPORTANTE----------------------------------------
+MUY IMPORTANTE: se han de hacer un par de cambios al script que pasamos a la IA (si no se hace nos dara datos que no pertenecen a tu torneo y este no funcionará correctamente)
 ESTE ÚLTIMO PUNTO 3 ES UN EJEMPLO. SE HAN DE SUSTITUIR LOS EQUIPOS POR LOS QUE TU HAYAS PUESTO EN TU TORNEO. (esto sirve para que la ponga la información de los equipos automaticamente a la hora de pasarle la foto del resultado del partido)
+------------------------------------------------------------------------------------
 
 ESTRUCTURA DEL JSON:
 -PARTIDO DE LIGA REGULAR:
@@ -593,4 +598,5 @@ ESTRUCTURA DEL JSON:
         }
       }
     },
+
 
