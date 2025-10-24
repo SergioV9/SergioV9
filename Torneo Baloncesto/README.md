@@ -56,7 +56,7 @@ Creé esta aplicación porque el videojuego que usaba con mi familia no permití
         - Una vez que ya le hayas pasado las fotos de los datos de los equipos y los 4 datos, la IA empezará a generar el codigo json para nuestro partido en específico, que tendra que ser reemplazado por el código de nuestro mismo partido en nuestro archivo json (ya que este no tiene los valores).
         - REPASO RÁPIDO:
           - Copiar el script (haciendo las modificaciones necesarias) (Este es el pimer prompt a enviar)
-          - Hacer la foto a las estadísticas de los jugadores al acabar de jugar el partido y encontrar en el json los 4 atributos necesarios del partido que le vamos a pasar las fotos para que la IA pueda generar el codigo entero
+          - Hacer la foto a las estadísticas de los jugadores al acabar de jugar el partido y encontrar en el json los 4 atributos necesarios del partido, para que la IA pueda generar el codigo entero
           - Sustituir el codigo que nos a proporcionado la IA por el nuestro (que esta sin datos del partido) en nuestro json
       - Introducir datos MANUALMENTE: Esta opción no necesita IA ya que los datos los pones tu modificando el propio archivo json. Para esto solo has de encontrar el partido que se ha jugado y ir cambiando los datos de los equipos y jugadores uno por uno, si lo haces de esta manera puedes escoger que estadisticas poner y cuales no (ya que ponerlas todas puede llevarte un tiempo). Es recomendable probar la otra opción primero ya que te ahorrara mucho tiempo
 
