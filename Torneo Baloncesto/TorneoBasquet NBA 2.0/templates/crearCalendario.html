@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Calendario - Torneo de Baloncesto</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .form-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .equipo-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        
+        .equipo-input input, .equipo-input select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        button {
+            background: #0056b3;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #003d7a;
+        }
+        
+        #equipos-container {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Torneo de Baloncesto</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Clasificación</a></li>
+                <li><a href="/calendario">Calendario</a></li>
+                <li><a href="/estadisticas">Estadísticas</a></li>
+                <li><a href="/playoffs">Playoffs</a></li>
+                <li><a href="/crearCalendario">Crear Calendario</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="form-container">
+            <h2>Crear Nuevo Calendario</h2>
+            <div id="equipos-container">
+                <div class="equipo-input">
+                    <input type="text" placeholder="Nombre del equipo" class="nombre-equipo">
+                    <select class="bombo-equipo">
+                        <option value="1">Bombo 1</option>
+                        <option value="2">Bombo 2</option>
+                        <option value="3">Bombo 3</option>
+                        <option value="4">Bombo 4</option>
+                    </select>
+                    <select class="grupo-equipo">
+                        <option value="A">Grupo A</option>
+                        <option value="B">Grupo B</option>
+                        <option value="C">Grupo C</option>
+                        <option value="D">Grupo D</option>
+                        <option value="E">Grupo E</option>
+                        <option value="F">Grupo F</option>
+                        <option value="G">Grupo G</option>
+                        <option value="H">Grupo H</option>
+                    </select>
+                    <button onclick="eliminarEquipo(this)">Eliminar</button>
+                </div>
+            </div>
+            <button onclick="agregarEquipo()">Añadir Equipo</button>
+            <button onclick="generarCalendario()">Generar Calendario</button>
+        </section>
+    </main>
+
+    <script>
+        function agregarEquipo() {
+            const container = document.getElementById('equipos-container');
+            const nuevoEquipo = document.createElement('div');
+            nuevoEquipo.className = 'equipo-input';
+            nuevoEquipo.innerHTML = `
+                <input type="text" placeholder="Nombre del equipo" class="nombre-equipo">
+                <select class="bombo-equipo">
+                    <option value="1">Bombo 1</option>
+                    <option value="2">Bombo 2</option>
+                    <option value="3">Bombo 3</option>
+                    <option value="4">Bombo 4</option>
+                </select>
+                <select class="grupo-equipo">
+                    <option value="A">Grupo A</option>
+                    <option value="B">Grupo B</option>
+                    <option value="C">Grupo C</option>
+                    <option value="D">Grupo D</option>
+                    <option value="E">Grupo E</option>
+                    <option value="F">Grupo F</option>
+                    <option value="G">Grupo G</option>
+                    <option value="H">Grupo H</option>
+                </select>
+                <button onclick="eliminarEquipo(this)">Eliminar</button>
+            `;
+            container.appendChild(nuevoEquipo);
+        }
+
+        function eliminarEquipo(boton) {
+            boton.parentElement.remove();
+        }
+
+        function confirmarGeneracion() {
+            if (confirm("¿Generar calendario? Esto sobrescribirá los partidos actuales.")) {
+                generarCalendario();
+            }
+        }
+
+        function generarCalendario() {
+            const confirmacion = confirm("¿Estás seguro de generar el calendario?");
+            if (!confirmacion) return;
+            const equipos = [];
+            document.querySelectorAll('.equipo-input').forEach(input => {
+                equipos.push({
+                    nombre: input.querySelector('.nombre-equipo').value,
+                    bombo: parseInt(input.querySelector('.bombo-equipo').value),
+                    grupo: input.querySelector('.grupo-equipo').value
+                });
+            });
+
+            fetch('/api/generar_calendario', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ equipos })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert("Calendario generado con éxito.");
+                window.location.href = "/calendario";
+            })
+            .catch(error => {
+                alert("Error al generar el calendario.");
+                console.error(error);
+            });
+        }
+    </script>
+</body>
+</html>

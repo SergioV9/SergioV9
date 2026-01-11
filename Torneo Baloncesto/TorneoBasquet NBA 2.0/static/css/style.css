@@ -1,0 +1,128 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Teko:wght@500;700&display=swap');
+
+:root {
+    --primary: #1d428a; /* Azul NBA */
+    --secondary: #c9082a; /* Rojo NBA */
+    --accent: #fdb927; /* Amarillo/Dorado */
+    --bg-color: #f4f7f6;
+    --card-bg: #ffffff;
+    --text-main: #2d3436;
+    --text-light: #636e72;
+    --success: #00b894;
+    --danger: #d63031;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+body { font-family: 'Roboto', sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-main); line-height: 1.6; }
+
+/* --- HEADER & NAV --- */
+header { background: linear-gradient(135deg, var(--primary) 0%, #002D62 100%); color: white; padding: 1rem 0; box-shadow: 0 4px 12px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100; }
+header h1 { font-family: 'Teko', sans-serif; font-size: 2.5rem; text-transform: uppercase; margin: 0; text-align: center; letter-spacing: 2px; }
+nav ul { list-style: none; padding: 0; display: flex; justify-content: center; gap: 2rem; margin-top: 1rem; flex-wrap: wrap; }
+nav a { color: rgba(255,255,255,0.7); text-decoration: none; font-weight: 700; text-transform: uppercase; font-size: 0.9rem; padding: 0.5rem 1rem; border-radius: 4px; transition: all 0.3s ease; }
+nav a:hover, nav a.active { color: white; background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+
+/* --- LAYOUT GENERAL --- */
+main { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
+h2, h3 { color: var(--primary); border-left: 5px solid var(--secondary); padding-left: 10px; margin-bottom: 1.5rem; }
+.card, .grupo-clasificacion { background: var(--card-bg); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); margin-bottom: 2rem; }
+
+/* --- BOTONES Y FORMULARIOS --- */
+button, .btn-primary { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.3s; }
+button:hover, .btn-primary:hover { background: #002D62; }
+input[type="text"], input[type="number"], select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; outline: none; }
+input:focus, select:focus { border-color: var(--primary); }
+
+/* --- FILTROS Y BUSCADOR --- */
+.filtros { background: white; padding: 1rem; border-radius: 12px; box-shadow: var(--shadow); display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; justify-content: center; margin-bottom: 2rem; }
+.filtros input[type="text"] { min-width: 200px; border-left: 4px solid var(--primary); }
+
+/* --- TOGGLE SWITCH --- */
+.toggle-container { display: flex; align-items: center; gap: 10px; background: #f1f3f5; padding: 5px 15px; border-radius: 20px; border: 1px solid #ddd; }
+.switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--primary); }
+input:checked + .slider:before { transform: translateX(20px); }
+
+/* --- TABLAS --- */
+table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 1rem 0; }
+th { background-color: var(--primary); color: white; padding: 15px; text-transform: uppercase; font-size: 0.85rem; position: sticky; top: 0; white-space: nowrap; }
+th:first-child { border-top-left-radius: 10px; }
+th:last-child { border-top-right-radius: 10px; }
+td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; font-weight: 500; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background-color: #f0f4ff; }
+.stat-sub { display: block; font-size: 0.8em; color: var(--text-light); font-weight: normal; }
+
+/* --- COLORES CLASIFICACIÓN --- */
+.pos-top td:nth-child(1) { background: #28a745 !important; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+.pos-mid td:nth-child(1) { background: #ffc107 !important; color: #333; }
+.pos-playoffs td:nth-child(1) { background: #e3f2fd; color: #333; }
+.pos-out td:nth-child(1) { background: #f8d7da; color: #721c24; }
+
+/* --- EQUIPOS Y LOGOS --- */
+.team-cell { display: flex; align-items: center; gap: 10px; justify-content: flex-start; }
+.team-logo { width: 35px; height: 35px; object-fit: contain; }
+.team-logo-lg { width: 50px; height: 50px; object-fit: contain; }
+.team-name { font-weight: bold; color: var(--primary); }
+.team-name-lg { font-weight: bold; font-size: 1.2rem; color: var(--primary); }
+.stat-highlight { font-weight: 800; color: var(--primary); font-size: 1.1em; }
+
+/* --- CALENDARIO GRID (MODIFICADO PARA 2 COLUMNAS) --- */
+.jornada-block { margin-bottom: 40px; }
+.jornada-title { background: var(--primary); color: white; padding: 8px 15px; border-radius: 5px; font-family: 'Teko', sans-serif; font-size: 1.4rem; display: inline-block; margin-bottom: 15px; }
+
+/* Nueva Clase Grid para poner partidos en parejas */
+.matches-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 Columnas exactas */
+    gap: 20px;
+}
+
+/* En móviles, volvemos a 1 columna */
+@media (max-width: 900px) {
+    .matches-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.match-card-horizontal { 
+    background: white; 
+    border-radius: 10px; 
+    box-shadow: var(--shadow); 
+    padding: 20px; 
+    display: flex; 
+    flex-direction: column; 
+    border-left: 5px solid #ddd; 
+    transition: transform 0.2s; 
+    /* Quitamos el margin-bottom porque el grid controla el espacio con gap */
+}
+.match-card-horizontal:hover { transform: translateY(-3px); }
+.match-card-horizontal.played { border-left-color: var(--success); }
+.match-header { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #f0f0f0; }
+.team-info { display: flex; align-items: center; gap: 15px; width: 35%; }
+.team-info.visitante { justify-content: flex-end; text-align: right; }
+.score-display { font-family: 'Teko', sans-serif; font-size: 3rem; font-weight: bold; white-space: nowrap; color: var(--text-main); background: #f8f9fa; padding: 0 20px; border-radius: 8px; min-width: 120px; text-align: center; }
+.top-scorers { display: flex; justify-content: center; gap: 20px; background: #fafafa; padding: 10px; border-radius: 8px; flex-wrap: wrap; }
+.scorer-item { font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+
+/* --- PLAYOFFS BRACKET --- */
+.bracket-wrapper { display: flex; justify-content: flex-start; padding: 40px 0; gap: 0; min-width: max-content; }
+.round-column { display: flex; flex-direction: column; justify-content: space-around; min-width: 260px; padding: 0 50px; position: relative; }
+.round-title { text-align: center; font-weight: bold; color: var(--primary); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+.match-node { background: white; border: 1px solid #ccc; border-radius: 6px; padding: 10px; width: 200px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; margin: 20px 0; }
+.round-column:not(:last-child) .match-node::after { content: ''; position: absolute; right: -50px; top: 50%; width: 50px; height: 2px; background: #ccc; }
+.node-team { display: flex; justify-content: space-between; padding: 5px; border-bottom: 1px solid #eee; align-items: center; }
+.node-team:last-child { border:none; }
+.node-team.winner { background-color: #d4edda; font-weight: bold; }
+.node-score { font-family: 'Teko', sans-serif; font-size: 1.1rem; }
+
+/* --- ESTADISTICAS GRID --- */
+.jugador-partido { background: white; border-left: 5px solid var(--accent); padding: 0; border-radius: 8px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 20px; }
+.jugador-partido h4 { background: #f8f9fa; margin: 0; padding: 15px; border-bottom: 1px solid #eee; color: var(--text-main); }
+.jugador-partido .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; padding: 15px; }
+.stat-box { text-align: center; padding: 10px; background: #f8f9fa; border-radius: 6px; }
+.stat-box strong { font-size: 1.2rem; color: var(--primary); }

@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playoffs - Torneo de Baloncesto</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .playoffs-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .playoffs-bracket {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+            gap: 30px;
+        }
+        
+        .round {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            min-width: 250px;
+        }
+        
+        .round-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #0056b3;
+            font-size: 1.2em;
+        }
+        
+        .matchup {
+            height: auto;
+            margin: 20px 0;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .team {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: white;
+            border-radius: 4px;
+        }
+        
+        .team-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .team-logo {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+        }
+        
+        .team-name {
+            flex-grow: 1;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .team-pos {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .team-record {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            align-items: end;
+            padding-left: 80px;
+        }
+        
+        .results-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        
+        .result {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e9ecef;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .winner {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .conector {
+            position: absolute;
+            left: 100%;
+            width: 130px;
+            height: 2px;
+            background: #333;
+            top: 50%;
+        }
+        
+        .conector-vertical {
+            position: absolute;
+            left: 100%;
+            width: 2px;
+            height: 240px;
+            background: #333;
+            top: 10px;
+        }
+        
+        /* Colores por ronda */
+        .quarterfinals .matchup {
+            border-left: 4px solid #e3f2fd;
+        }
+        
+        .semifinals .matchup {
+            border-left: 4px solid #bbdefb;
+        }
+        
+        .final .matchup {
+            border-left: 4px solid #90caf9;
+        }
+        
+        .file-hint {
+            font-size: 10px;
+            color: #777;
+            margin-top: 5px;
+        }
+        
+        .pending {
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Torneo de Baloncesto</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Clasificación</a></li>
+                <li><a href="/calendario">Calendario</a></li>
+                <li><a href="/estadisticas">Estadísticas</a></li>
+                <li><a href="/playoffs">Playoffs</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="playoffs-container">
+        <section id="playoffs">
+            <h2>Cuadro de Playoffs</h2>
+            <div class="playoffs-bracket">
+                <!-- Cuartos de final -->
+                <div class="round quarterfinals">
+                    <h3 class="round-title">Cuartos de Final</h3>
+                    <div id="cuartos-container">
+                        <!-- Se generarán dinámicamente 4 matchups -->
+                    </div>
+                </div>
+                
+                <!-- Semifinales -->
+                <div class="round semifinals">
+                    <h3 class="round-title">Semifinales</h3>
+                    <div id="semifinal-A" class="matchup" data-eliminatoria="semifinalA" data-grupo="A">
+                        <div class="team">
+                            <div class="team-header">
+                                <img src="/static/img/equipos/default.jpg" alt="Ganador 1A/4A" class="team-logo">
+                                <span class="team-name pending">Ganador 1A/4A</span>
+                            </div>
+                            <div class="results-container">
+                                <div class="result" data-partido="1">-</div>
+                                <div class="result" data-partido="2">-</div>
+                                <div class="result" data-partido="3">-</div>
+                            </div>
+                        </div>
+                        <div class="team">
+                            <div class="team-header">
+                                <img src="/static/img/equipos/default.jpg" alt="Ganador 2A/3A" class="team-logo">
+                                <span class="team-name pending">Ganador 2A/3A</span>
+                            </div>
+                            <div class="results-container">
+                                <div class="result" data-partido="1">-</div>
+                                <div class="result" data-partido="2">-</div>
+                                <div class="result" data-partido="3">-</div>
+                            </div>
+                        </div>
+                        <div class="conector"></div>
+                        <div class="conector-vertical"></div>
+                    </div>
+                    <div id="semifinal-B" class="matchup" data-eliminatoria="semifinalB" data-grupo="B">
+                        <div class="team">
+                            <div class="team-header">
+                                <img src="/static/img/equipos/default.jpg" alt="Ganador 1B/4B" class="team-logo">
+                                <span class="team-name pending">Ganador 1B/4B</span>
+                            </div>
+                            <div class="results-container">
+                                <div class="result" data-partido="1">-</div>
+                                <div class="result" data-partido="2">-</div>
+                                <div class="result" data-partido="3">-</div>
+                            </div>
+                        </div>
+                        <div class="team">
+                            <div class="team-header">
+                                <img src="/static/img/equipos/default.jpg" alt="Ganador 2B/3B" class="team-logo">
+                                <span class="team-name pending">Ganador 2B/3B</span>
+                            </div>
+                            <div class="results-container">
+                                <div class="result" data-partido="1">-</div>
+                                <div class="result" data-partido="2">-</div>
+                                <div class="result" data-partido="3">-</div>
+                            </div>
+                        </div>
+                        <div class="conector"></div>
+                        <div class="conector-vertical"></div>
+                    </div>
+                </div>
+                
+                <!-- Final -->
+                <div class="round final">
+                    <h3 class="round-title">Final</h3>
+                    <div class="matchup" data-eliminatoria="final">
+                        <div class="team" data-grupo="A">
+                            <div class="team-header">
+                                <img src="/static/img/equipos/default.jpg" alt="Ganador A" class="team-logo">
+                                <span class="team-name pending">Ganador Grupo A</span>
+                            </div>
+                            <div class="results-container">
+                                <div class="result" data-partido="1">-</div>
+                                <div class="result" data-partido="2">-</div>
+                                <div class="result" data-partido="3">-</div>
+                            </div>
+                        </div>
+                        <div class="team" data-grupo="B">
+                            <div class="team-header">
+                                <img src="/static/img/equipos/default.jpg" alt="Ganador B" class="team-logo">
+                                <span class="team-name pending">Ganador Grupo B</span>
+                            </div>
+                            <div class="results-container">
+                                <div class="result" data-partido="1">-</div>
+                                <div class="result" data-partido="2">-</div>
+                                <div class="result" data-partido="3">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/partidos')
+            .then(response => response.json())
+            .then(data => {
+                // 1. Obtener equipos clasificados para playoffs
+                const equiposPlayoffs = obtenerEquiposPlayoffs(data);
+                
+                // 2. Generar cuadro de playoffs inicial
+                generarCuartosDeFinal(equiposPlayoffs);
+                
+                // 3. Actualizar resultados de playoffs
+                actualizarResultadosPlayoffs(data);
+            });
+            
+        function obtenerEquiposPlayoffs(partidos) {
+            const equipos = {};
+            const grupos = new Set();
+            
+            // Procesar partidos de temporada regular
+            Object.values(partidos).forEach(partido => {
+                if (partido.Playoffs === "no") {
+                    procesarEquipo(partido.local, equipos, partido);
+                    procesarEquipo(partido.visitante, equipos, partido);
+                    grupos.add(partido.local.grupo);
+                    grupos.add(partido.visitante.grupo);
+                }
+            });
+
+            // Añadir registro de enfrentamientos directos (como en index.html)
+            Object.values(equipos).forEach(equipo => {
+                equipo.enfrentamientos = {};
+            });
+            
+            // Procesar enfrentamientos directos
+            Object.values(partidos).forEach(partido => {
+                if (partido.Playoffs === "no") {
+                    registrarEnfrentamiento(partido.local, partido.visitante, equipos, partido);
+                    registrarEnfrentamiento(partido.visitante, partido.local, equipos, partido);
+                }
+            });
+            
+            // Ordenar equipos por grupo usando los mismos criterios que index.html
+            const equiposPorGrupo = {};
+            grupos.forEach(grupo => {
+                equiposPorGrupo[grupo] = Object.values(equipos)
+                    .filter(e => e.grupo === grupo)
+                    .sort((a, b) => {
+                        // 1. Por porcentaje de victorias
+                        const porcentajeA = a.PJ > 0 ? a.PG / a.PJ : 0;
+                        const porcentajeB = b.PJ > 0 ? b.PG / b.PJ : 0;
+                        
+                        if (porcentajeA !== porcentajeB) {
+                            return porcentajeB - porcentajeA;
+                        }
+                        
+                        // 2. Enfrentamiento directo (solo si se han enfrentado al menos 2 veces)
+                        if (a.enfrentamientos[b.nombre] && b.enfrentamientos[a.nombre]) {
+                            const totalPG_A = a.enfrentamientos[b.nombre].PG + b.enfrentamientos[a.nombre].PP;
+                            const totalPG_B = a.enfrentamientos[b.nombre].PP + b.enfrentamientos[a.nombre].PG;
+                            
+                            if (totalPG_A !== totalPG_B) {
+                                return totalPG_B - totalPG_A;
+                            }
+                        }
+                        
+                        // 3. Diferencia de puntos en todos los partidos
+                        const difA = a.PF - a.PC;
+                        const difB = b.PF - b.PC;
+                        
+                        if (difA !== difB) {
+                            return difB - difA;
+                        }
+                        
+                        // 4. Más puntos anotados
+                        return b.PF - a.PF;
+                    })
+                    .map((equipo, index) => {
+                        equipo.posicion = index + 1;
+                        return equipo;
+                    });
+            });
+            
+            return equiposPorGrupo;
+        }
+
+        // Nueva función para registrar enfrentamientos directos
+        function registrarEnfrentamiento(equipoData, rivalData, equipos, partido) {
+            const equipo = equipos[equipoData.nombre];
+            const rivalNombre = rivalData.nombre;
+            
+            if (!equipo.enfrentamientos[rivalNombre]) {
+                equipo.enfrentamientos[rivalNombre] = { PG: 0, PP: 0 };
+            }
+            
+            const puntosEquipo = equipoData === partido.local ? partido.puntosLocal : partido.puntosVisitante;
+            const puntosRival = equipoData === partido.local ? partido.puntosVisitante : partido.puntosLocal;
+            
+            if (puntosEquipo > puntosRival) {
+                equipo.enfrentamientos[rivalNombre].PG += 1;
+            } else if (puntosEquipo < puntosRival) {
+                equipo.enfrentamientos[rivalNombre].PP += 1;
+            }
+        }
+        
+        function generarCuartosDeFinal(equiposPorGrupo) {
+            const cuartosContainer = document.getElementById('cuartos-container');
+            cuartosContainer.innerHTML = '';
+            
+            // Grupos A y B
+            const grupoA = equiposPorGrupo['A'] || [];
+            const grupoB = equiposPorGrupo['B'] || [];
+            
+            // Emparejamientos cuartos de final
+            // CAMBIAR ESTE APARTADO SI SE JUEGAN LOS PLAYIN
+            const emparejamientos = [
+                { id: 'cuartos-A1', equipo1: grupoA[0], equipo2: grupoA[3], grupo: 'A', eliminatoria: 'cuartosA1' },
+                { id: 'cuartos-A2', equipo1: grupoA[1], equipo2: grupoA[2], grupo: 'A', eliminatoria: 'cuartosA2' },
+                { id: 'cuartos-B1', equipo1: grupoB[0], equipo2: grupoB[3], grupo: 'B', eliminatoria: 'cuartosB1' },
+                { id: 'cuartos-B2', equipo1: grupoB[1], equipo2: grupoB[2], grupo: 'B', eliminatoria: 'cuartosB2' }
+            ];
+            
+            emparejamientos.forEach(({id, equipo1, equipo2, grupo, eliminatoria}) => {
+                if (!equipo1 || !equipo2) return;
+                
+                const matchupDiv = document.createElement('div');
+                matchupDiv.className = 'matchup';
+                matchupDiv.id = id;
+                matchupDiv.setAttribute('data-grupo', grupo);
+                matchupDiv.setAttribute('data-eliminatoria', eliminatoria);
+                
+                matchupDiv.innerHTML = `
+                    <div class="team">
+                        <div class="team-header">
+                            <img src="/static/img/equipos/${equipo1.nombre}.jpg" 
+                                 alt="${equipo1.nombre}" class="team-logo">
+                            <span class="team-name">${equipo1.nombre}</span>
+                            <span class="team-pos">(${equipo1.posicion}º${grupo})</span>
+                        </div>
+                        <div class="results-container">
+                            <div class="result" data-partido="1">-</div>
+                            <div class="result" data-partido="2">-</div>
+                            <div class="result" data-partido="3">-</div>
+                            <span class="team-record">${equipo1.PG}-${equipo1.PP}</span>
+                        </div>
+                    </div>
+                    <div class="team">
+                        <div class="team-header">
+                            <img src="/static/img/equipos/${equipo2.nombre}.jpg" 
+                                 alt="${equipo2.nombre}" class="team-logo">
+                            <span class="team-name">${equipo2.nombre}</span>
+                            <span class="team-pos">(${equipo2.posicion}º${grupo})</span>
+                        </div>
+                        <div class="results-container">
+                            <div class="result" data-partido="1">-</div>
+                            <div class="result" data-partido="2">-</div>
+                            <div class="result" data-partido="3">-</div>
+                            <span class="team-record">${equipo2.PG}-${equipo2.PP}</span>
+                        </div>
+                    </div>
+                    <div class="conector"></div>
+                    <div class="conector-vertical"></div>
+                `;
+                
+                cuartosContainer.appendChild(matchupDiv);
+            });
+        }
+        
+        function actualizarResultadosPlayoffs(partidos) {
+            // Filtrar partidos de playoffs
+            const partidosPlayoffs = Object.values(partidos).filter(p => p.Playoffs === "si");
+            
+            // Objeto para agrupar por eliminatoria
+            const eliminatorias = {};
+            
+            // Agrupar partidos por eliminatoria
+            partidosPlayoffs.forEach(partido => {
+                if (!eliminatorias[partido.eliminatoria]) {
+                    eliminatorias[partido.eliminatoria] = [];
+                }
+                eliminatorias[partido.eliminatoria].push(partido);
+            });
+            
+            // Procesar cada eliminatoria
+            Object.entries(eliminatorias).forEach(([nombreEliminatoria, partidosEliminatoria]) => {
+                // Ordenar partidos por numPartido
+                partidosEliminatoria.sort((a, b) => (a.numPartido || 1) - (b.numPartido || 1));
+                
+                // Buscar el matchup correspondiente
+                let matchup;
+                if (nombreEliminatoria.includes('cuartos')) {
+                    matchup = document.querySelector(`[data-eliminatoria="${nombreEliminatoria}"]`);
+                } else if (nombreEliminatoria.includes('semifinal')) {
+                    const grupo = nombreEliminatoria.includes('A') ? 'A' : 'B';
+                    matchup = document.getElementById(`semifinal-${grupo}`);
+                } else if (nombreEliminatoria.includes('final')) {
+                    matchup = document.querySelector('.final .matchup');
+                }
+                
+                if (matchup) {
+                    // Procesar cada partido de la eliminatoria
+                    partidosEliminatoria.forEach((partido, index) => {
+                        const partidoNum = index + 1; // 1, 2 o 3
+                        
+                        // Actualizar resultados
+                        const localScore = matchup.querySelector(`.team:nth-child(1) .result[data-partido="${partidoNum}"]`);
+                        const visitanteScore = matchup.querySelector(`.team:nth-child(2) .result[data-partido="${partidoNum}"]`);
+                        
+                        if (localScore && visitanteScore) {
+                            localScore.textContent = partido.puntosLocal;
+                            visitanteScore.textContent = partido.puntosVisitante;
+                            
+                            // Marcar ganador
+                            if (partido.puntosLocal > partido.puntosVisitante) {
+                                localScore.classList.add('winner');
+                            } else {
+                                visitanteScore.classList.add('winner');
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // Actualizar cuadro según resultados
+            determinarGanadores();
+        }
+        
+        function determinarGanadores() {
+            // Actualizar semifinales
+            actualizarSemifinales();
+            
+            // Actualizar final
+            actualizarFinal();
+        }
+        
+        function actualizarSemifinales() {
+            // Procesar cuartos de final del Grupo A
+            const ganadorCuartosA1 = calcularGanadorEliminatoria('cuartosA1');
+            const ganadorCuartosA2 = calcularGanadorEliminatoria('cuartosA2');
+            
+            // Procesar cuartos de final del Grupo B
+            const ganadorCuartosB1 = calcularGanadorEliminatoria('cuartosB1');
+            const ganadorCuartosB2 = calcularGanadorEliminatoria('cuartosB2');
+            
+            // Actualizar semifinal A
+            if (ganadorCuartosA1 && ganadorCuartosA2) {
+                const semiA = document.getElementById('semifinal-A');
+                
+                // Quitar estado "pending"
+                semiA.querySelectorAll('.pending').forEach(el => el.classList.remove('pending'));
+                
+                // Equipo 1
+                semiA.querySelector('.team:nth-child(1) .team-name').textContent = ganadorCuartosA1.nombre;
+                semiA.querySelector('.team:nth-child(1) .team-logo').src = `/static/img/equipos/${ganadorCuartosA1.nombre}.jpg`;
+                semiA.querySelector('.team:nth-child(1) .team-logo').alt = ganadorCuartosA1.nombre;
+                
+                // Equipo 2
+                semiA.querySelector('.team:nth-child(2) .team-name').textContent = ganadorCuartosA2.nombre;
+                semiA.querySelector('.team:nth-child(2) .team-logo').src = `/static/img/equipos/${ganadorCuartosA2.nombre}.jpg`;
+                semiA.querySelector('.team:nth-child(2) .team-logo').alt = ganadorCuartosA2.nombre;
+            }
+            
+            // Actualizar semifinal B
+            if (ganadorCuartosB1 && ganadorCuartosB2) {
+                const semiB = document.getElementById('semifinal-B');
+                
+                // Quitar estado "pending"
+                semiB.querySelectorAll('.pending').forEach(el => el.classList.remove('pending'));
+                
+                // Equipo 1
+                semiB.querySelector('.team:nth-child(1) .team-name').textContent = ganadorCuartosB1.nombre;
+                semiB.querySelector('.team:nth-child(1) .team-logo').src = `/static/img/equipos/${ganadorCuartosB1.nombre}.jpg`;
+                semiB.querySelector('.team:nth-child(1) .team-logo').alt = ganadorCuartosB1.nombre;
+                
+                // Equipo 2
+                semiB.querySelector('.team:nth-child(2) .team-name').textContent = ganadorCuartosB2.nombre;
+                semiB.querySelector('.team:nth-child(2) .team-logo').src = `/static/img/equipos/${ganadorCuartosB2.nombre}.jpg`;
+                semiB.querySelector('.team:nth-child(2) .team-logo').alt = ganadorCuartosB2.nombre;
+            }
+        }
+        
+        function actualizarFinal() {
+            const ganadorSemiA = calcularGanadorEliminatoria('semifinalA');
+            const ganadorSemiB = calcularGanadorEliminatoria('semifinalB');
+            
+            if (ganadorSemiA && ganadorSemiB) {
+                const final = document.querySelector('.final .matchup');
+                
+                // Quitar estado "pending"
+                final.querySelectorAll('.pending').forEach(el => el.classList.remove('pending'));
+                
+                // Equipo 1 (Grupo A)
+                final.querySelector('.team[data-grupo="A"] .team-name').textContent = ganadorSemiA.nombre;
+                final.querySelector('.team[data-grupo="A"] .team-logo').src = `/static/img/equipos/${ganadorSemiA.nombre}.jpg`;
+                final.querySelector('.team[data-grupo="A"] .team-logo').alt = ganadorSemiA.nombre;
+                
+                // Equipo 2 (Grupo B)
+                final.querySelector('.team[data-grupo="B"] .team-name').textContent = ganadorSemiB.nombre;
+                final.querySelector('.team[data-grupo="B"] .team-logo').src = `/static/img/equipos/${ganadorSemiB.nombre}.jpg`;
+                final.querySelector('.team[data-grupo="B"] .team-logo').alt = ganadorSemiB.nombre;
+            }
+        }
+        
+        function calcularGanadorEliminatoria(eliminatoria) {
+            const matchup = document.querySelector(`[data-eliminatoria="${eliminatoria}"]`);
+            if (!matchup) return null;
+            
+            const resultadosLocal = Array.from(matchup.querySelectorAll('.team:nth-child(1) .result'))
+                .map(el => parseInt(el.textContent) || 0);
+            const resultadosVisitante = Array.from(matchup.querySelectorAll('.team:nth-child(2) .result'))
+                .map(el => parseInt(el.textContent) || 0);
+            
+            // Contar victorias
+            let victoriasLocal = 0;
+            let victoriasVisitante = 0;
+            
+            for (let i = 0; i < resultadosLocal.length; i++) {
+                if (resultadosLocal[i] > resultadosVisitante[i]) {
+                    victoriasLocal++;
+                } else if (resultadosVisitante[i] > resultadosLocal[i]) {
+                    victoriasVisitante++;
+                }
+            }
+            
+            // Determinar ganador (mejor de 3)
+            if (victoriasLocal >= 2) {
+                return {
+                    nombre: matchup.querySelector('.team:nth-child(1) .team-name').textContent,
+                    grupo: matchup.getAttribute('data-grupo')
+                };
+            } else if (victoriasVisitante >= 2) {
+                return {
+                    nombre: matchup.querySelector('.team:nth-child(2) .team-name').textContent,
+                    grupo: matchup.getAttribute('data-grupo')
+                };
+            }
+            
+            return null; // Aún no hay ganador
+        }
+        
+        function procesarEquipo(equipoData, equipos, partido) {
+            if (!equipos[equipoData.nombre]) {
+                equipos[equipoData.nombre] = {
+                    nombre: equipoData.nombre,
+                    grupo: equipoData.grupo,
+                    PJ: 0, PG: 0, PP: 0, PF: 0, PC: 0
+                };
+            }
+            
+            const equipo = equipos[equipoData.nombre];
+            const puntosEquipo = equipoData === partido.local ? partido.puntosLocal : partido.puntosVisitante;
+            const puntosRival = equipoData === partido.local ? partido.puntosVisitante : partido.puntosLocal;
+            
+            equipo.PJ += 1;
+            equipo.PF += puntosEquipo;
+            equipo.PC += puntosRival;
+            
+            if (puntosEquipo > puntosRival) {
+                equipo.PG += 1;
+            } else {
+                if (puntosEquipo != puntosRival) {
+                    equipo.PP += 1;
+                }
+            }
+        }
+    });
+    </script>
+</body>
+</html>

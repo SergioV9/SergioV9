@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario - Torneo NBA</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>Torneo NBA</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Clasificación</a></li>
+                <li><a href="/calendario" class="active">Calendario</a></li>
+                <li><a href="/estadisticas">Estadísticas</a></li>
+                <li><a href="/playoffs">Playoffs</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2><i class="far fa-calendar-alt"></i> Calendario de Partidos</h2>
+            <button onclick="window.location.href='/crearCalendario'" class="btn-primary" style="background:var(--secondary);">
+                <i class="fas fa-plus-circle"></i> Nuevo Torneo
+            </button>
+        </section>
+
+        <div id="lista-partidos"></div>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const DEFAULT_IMG = 'https://cdn-icons-png.flaticon.com/512/33/33736.png';
+        const contenedor = document.getElementById('lista-partidos');
+
+        fetch('/api/partidos')
+            .then(response => response.json())
+            .then(data => {
+                const partidos = Object.values(data);
+                const partidosPorJornada = {};
+                partidos.forEach(p => {
+                    if (!partidosPorJornada[p.Jornada]) partidosPorJornada[p.Jornada] = [];
+                    partidosPorJornada[p.Jornada].push(p);
+                });
+
+                const jornadasOrdenadas = Object.keys(partidosPorJornada).sort((a,b) => parseInt(a) - parseInt(b));
+
+                if (jornadasOrdenadas.length === 0) {
+                    contenedor.innerHTML = '<div class="card"><p style="text-align:center">No hay partidos.</p></div>';
+                    return;
+                }
+
+                jornadasOrdenadas.forEach(jornada => {
+                    const bloque = document.createElement('div');
+                    bloque.className = 'jornada-block';
+                    bloque.innerHTML = `<div class="jornada-title">JORNADA ${jornada}</div>`;
+                    
+                    // --- NUEVO CONTAINER GRID ---
+                    const gridContainer = document.createElement('div');
+                    gridContainer.className = 'matches-grid';
+                    
+                    partidosPorJornada[jornada].forEach(p => {
+                        const jugado = (p.puntosLocal > 0 || p.puntosVisitante > 0);
+                        
+                        let topScorersHTML = '';
+                        if (jugado) {
+                            let todos = [];
+                            Object.entries(p.local.jugadores).forEach(([n, s]) => todos.push({n, pts: s.puntos, l: p.local.nombre}));
+                            Object.entries(p.visitante.jugadores).forEach(([n, s]) => todos.push({n, pts: s.puntos, l: p.visitante.nombre}));
+                            
+                            todos.sort((a,b) => b.pts - a.pts);
+                            const top3 = todos.slice(0, 3);
+                            
+                            topScorersHTML = '<div class="top-scorers"><span style="font-weight:bold; color:#666; font-size:0.8rem; align-self:center;">MVP:</span>';
+                            top3.forEach((j, idx) => {
+                                const color = idx === 0 ? 'gold' : (idx === 1 ? 'silver' : '#cd7f32');
+                                topScorersHTML += `
+                                    <div class="scorer-item">
+                                        <div style="background:${color}; width:12px; height:12px; border-radius:50%; margin-right:5px;"></div>
+                                        <img src="/static/img/equipos/${j.l}.jpg" style="width:20px; border-radius:50%;" onerror="this.src='${DEFAULT_IMG}'">
+                                        <strong>${j.pts}</strong> ${j.n}
+                                    </div>`;
+                            });
+                            topScorersHTML += '</div>';
+                        } else {
+                            topScorersHTML = '<div class="top-scorers" style="color:#999; font-style:italic; font-size:0.9rem;">Partido Pendiente</div>';
+                        }
+
+                        // Añadimos al Grid
+                        gridContainer.innerHTML += `
+                        <div class="match-card-horizontal ${jugado ? 'played' : ''}">
+                            <div class="match-header">
+                                <div class="team-info">
+                                    <img src="/static/img/equipos/${p.local.nombre}.jpg" class="team-logo-lg" onerror="this.src='${DEFAULT_IMG}'">
+                                    <span class="team-name-lg">${p.local.nombre}</span>
+                                </div>
+                                <div class="score-display">${jugado ? `${p.puntosLocal} - ${p.puntosVisitante}` : 'VS'}</div>
+                                <div class="team-info visitante">
+                                    <span class="team-name-lg">${p.visitante.nombre}</span>
+                                    <img src="/static/img/equipos/${p.visitante.nombre}.jpg" class="team-logo-lg" onerror="this.src='${DEFAULT_IMG}'">
+                                </div>
+                            </div>
+                            ${topScorersHTML}
+                        </div>`;
+                    });
+                    
+                    // Juntamos todo
+                    bloque.appendChild(gridContainer);
+                    contenedor.appendChild(bloque);
+                });
+            });
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clasificación - Torneo NBA</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>Torneo NBA</h1>
+        <nav>
+            <ul>
+                <li><a href="/" class="active">Clasificación</a></li>
+                <li><a href="/calendario">Calendario</a></li>
+                <li><a href="/estadisticas">Estadísticas</a></li>
+                <li><a href="/playoffs">Playoffs</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="clasificacion">
+            <h2><i class="fas fa-trophy"></i> Clasificación General</h2>
+            <div id="grupos-container"></div>
+        </section>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const DEFAULT_IMG = 'https://cdn-icons-png.flaticon.com/512/33/33736.png';
+
+        fetch('/api/partidos')
+            .then(response => {
+                if (!response.ok) throw new Error('Error al cargar datos');
+                return response.json();
+            })
+            .then(data => {
+                const equipos = {};
+                const grupos = new Set();
+                
+                Object.values(data).forEach(partido => {
+                    if (partido.Playoffs === "no") {
+                        procesarEquipo(partido.local, equipos, partido);
+                        procesarEquipo(partido.visitante, equipos, partido);
+                        grupos.add(partido.local.grupo);
+                        grupos.add(partido.visitante.grupo);
+                    }
+                });
+                
+                const gruposOrdenados = Array.from(grupos).sort();
+                const gruposContainer = document.getElementById('grupos-container');
+                
+                gruposOrdenados.forEach(grupo => {
+                    const grupoDiv = document.createElement('div');
+                    grupoDiv.className = 'grupo-clasificacion';
+                    grupoDiv.innerHTML = `<h3>GRUPO ${grupo}</h3>`;
+                    
+                    const tabla = document.createElement('table');
+                    tabla.innerHTML = `
+                        <thead><tr>
+                            <th>Pos</th><th>Equipo</th><th>PG</th><th>PP</th><th>%V</th><th>PF</th><th>PC</th><th>Dif</th>
+                        </tr></thead>
+                        <tbody id="tbody-${grupo}"></tbody>
+                    `;
+                    
+                    const equiposGrupo = Object.values(equipos).filter(e => e.grupo === grupo);
+                    const equiposOrdenados = ordenarClasificacionNBA(equiposGrupo);
+                    const tbody = tabla.querySelector('tbody');
+                    
+                    equiposOrdenados.forEach((equipo, index) => {
+                        const porcentajeVictorias = equipo.PJ > 0 ? (equipo.PG / (equipo.PG + equipo.PP) * 100).toFixed(1) : 0;
+                        const difPuntos = equipo.PF - equipo.PC;
+                        let rowClass = index < 3 ? 'pos-top' : (index < 5 ? 'pos-mid' : (index < 8 ? 'pos-playoffs' : 'pos-out'));
+                        
+                        tbody.innerHTML += `
+                            <tr class="${rowClass}">
+                                <td>${index + 1}</td>
+                                <td class="team-cell">
+                                    <img src="/static/img/equipos/${equipo.nombre}.jpg" class="team-logo" onerror="this.src='${DEFAULT_IMG}'">
+                                    <span class="team-name">${equipo.nombre}</span>
+                                </td>
+                                <td><strong>${equipo.PG}</strong></td><td>${equipo.PP}</td>
+                                <td>${porcentajeVictorias}%</td><td>${equipo.PF}</td><td>${equipo.PC}</td>
+                                <td style="color:${difPuntos > 0 ? 'green' : (difPuntos < 0 ? 'red' : 'inherit')}; font-weight:bold;">${difPuntos > 0 ? '+' : ''}${difPuntos}</td>
+                            </tr>`;
+                    });
+                    
+                    grupoDiv.appendChild(tabla);
+                    gruposContainer.appendChild(grupoDiv);
+                });
+                
+                function procesarEquipo(equipoData, equipos, partido) {
+                    if (!equipos[equipoData.nombre]) {
+                        equipos[equipoData.nombre] = {
+                            nombre: equipoData.nombre, grupo: equipoData.grupo,
+                            PJ: 0, PG: 0, PP: 0, PF: 0, PC: 0, difPuntos: 0, enfrentamientos: {}
+                        };
+                    }
+                    const equipo = equipos[equipoData.nombre];
+                    const rivalNombre = equipoData === partido.local ? partido.visitante.nombre : partido.local.nombre;
+                    const ptsA = equipoData === partido.local ? partido.puntosLocal : partido.puntosVisitante;
+                    const ptsB = equipoData === partido.local ? partido.puntosVisitante : partido.puntosLocal;
+                    
+                    equipo.PJ += 1; equipo.PF += ptsA; equipo.PC += ptsB; equipo.difPuntos = equipo.PF - equipo.PC;
+                    const victoria = ptsA > ptsB;
+                    
+                    if (victoria) equipo.PG += 1; else if (ptsA != ptsB) equipo.PP += 1;
+                    
+                    if (!equipo.enfrentamientos[rivalNombre]) equipo.enfrentamientos[rivalNombre] = { PG: 0, PP: 0 };
+                    if (victoria) equipo.enfrentamientos[rivalNombre].PG += 1; else equipo.enfrentamientos[rivalNombre].PP += 1;
+                }
+                
+                function ordenarClasificacionNBA(equipos) {
+                    return equipos.sort((a, b) => {
+                        const pctA = a.PJ > 0 ? a.PG / a.PJ : 0;
+                        const pctB = b.PJ > 0 ? b.PG / b.PJ : 0;
+                        if (pctA !== pctB) return pctB - pctA;
+                        
+                        if (a.enfrentamientos[b.nombre] && b.enfrentamientos[a.nombre]) {
+                            const totalPG_A = a.enfrentamientos[b.nombre].PG + b.enfrentamientos[a.nombre].PP;
+                            const totalPG_B = a.enfrentamientos[b.nombre].PP + b.enfrentamientos[a.nombre].PG;
+                            if (totalPG_A !== totalPG_B) return totalPG_B - totalPG_A;
+                        }
+                        if (a.difPuntos !== b.difPuntos) return b.difPuntos - a.difPuntos;
+                        return b.PF - a.PF;
+                    });
+                }
+            })
+            .catch(error => {
+                document.getElementById('grupos-container').innerHTML = `<div class="card"><p style="color:red">Error: ${error.message}</p></div>`;
+            });
+    });
+    </script>
+</body>
+</html>

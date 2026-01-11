@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas - Torneo NBA</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>Torneo NBA</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Clasificación</a></li>
+                <li><a href="/calendario">Calendario</a></li>
+                <li><a href="/estadisticas" class="active">Estadísticas</a></li>
+                <li><a href="/playoffs">Playoffs</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="card">
+            <h2><i class="fas fa-chart-bar"></i> Centro de Estadísticas</h2>
+            <div class="filtros">
+                <div style="position: relative;">
+                    <i class="fas fa-search" style="position: absolute; left: 10px; top: 13px; color: #aaa;"></i>
+                    <input type="text" id="buscador" placeholder="Buscar jugador..." style="padding-left: 35px;">
+                </div>
+                
+                <select id="fase">
+                    <option value="temporada" selected>Temporada Regular</option>
+                    <option value="playoffs">Playoffs</option>
+                </select>
+                
+                <select id="equipo">
+                    <option value="">Todos los equipos</option>
+                    <option value="todos_jugadores">Todos los jugadores</option>
+                </select>
+                
+                <select id="jugador" disabled>
+                    <option value="">Todos los jugadores</option>
+                </select>
+                
+                <select id="estadistica">
+                    <option value="" selected>Resumen General</option>
+                    <option value="valoracion">Valoración (MVP)</option>
+                    <option value="puntos">Puntos</option>
+                    <option value="rebotes">Rebotes</option>
+                    <option value="asistencias">Asistencias</option>
+                    <option value="tapones">Tapones</option>
+                    <option value="robos">Robos</option>
+                    <option value="tiros3">Triples Totales</option>
+                    
+                    <option value="tirosLibresAnotados">Tiros Libres Anotados</option>
+                    <option value="tirosCampoAnotados">Tiros Totales Anotados</option>
+                    <option value="pct3_threshold">% Triples (Min 5 anotados)</option>
+                    <option value="pctTC_threshold">% Tiros Campo (Min 10 anotados)</option>
+                </select>
+
+                <div class="toggle-container">
+                    <span style="font-size:0.9em; font-weight:bold; color:#666;">Totales</span>
+                    <label class="switch">
+                        <input type="checkbox" id="modo-promedio">
+                        <span class="slider round"></span>
+                    </label>
+                    <span style="font-size:0.9em; font-weight:bold; color:var(--primary);">Promedios</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="resultados-estadisticas"></div>
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const [faseSelect, equipoSelect, jugadorSelect, estadisticaSelect, modoPromedioCheck, buscadorInput, resultadosDiv] = 
+                ['fase', 'equipo', 'jugador', 'estadistica', 'modo-promedio', 'buscador', 'resultados-estadisticas'].map(id => document.getElementById(id));
+            
+            const DEFAULT_IMG = 'https://cdn-icons-png.flaticon.com/512/33/33736.png';
+            let partidosData = {}, equipos = new Set(), jugadoresPorEquipo = {};
+            
+            // --- CARGA DE DATOS ---
+            fetch('/api/partidos').then(r => r.json()).then(data => {
+                partidosData = data;
+                Object.values(data).forEach(p => { equipos.add(p.local.nombre); equipos.add(p.visitante.nombre); });
+                
+                equipoSelect.innerHTML = '<option value="">Todos los equipos</option><option value="todos_jugadores">Todos los jugadores (Global)</option>';
+                Array.from(equipos).sort().forEach(e => equipoSelect.innerHTML += `<option value="${e}">${e}</option>`);
+                
+                actualizarResultados();
+            });
+            
+            // --- EVENTOS ---
+            equipoSelect.addEventListener('change', function() {
+                const e = this.value; jugadorSelect.disabled = !e || e === "todos_jugadores";
+                if (e && e !== "todos_jugadores") cargarJugadores(e); else jugadorSelect.innerHTML = '<option value="">Todos los jugadores</option>';
+                actualizarResultados();
+            });
+            
+            [faseSelect, jugadorSelect, estadisticaSelect, modoPromedioCheck, buscadorInput].forEach(el => el.addEventListener(el === buscadorInput ? 'input' : 'change', actualizarResultados));
+            
+            // --- FUNCIONES AUXILIARES ---
+            function cargarJugadores(equipo) {
+                jugadoresPorEquipo[equipo] = new Set();
+                Object.values(partidosData).forEach(p => {
+                    if (p.local.nombre === equipo) Object.keys(p.local.jugadores).forEach(j => jugadoresPorEquipo[equipo].add(j));
+                    if (p.visitante.nombre === equipo) Object.keys(p.visitante.jugadores).forEach(j => jugadoresPorEquipo[equipo].add(j));
+                });
+                jugadorSelect.innerHTML = '<option value="">Todos los jugadores</option>';
+                Array.from(jugadoresPorEquipo[equipo]).sort().forEach(j => jugadorSelect.innerHTML += `<option value="${j}">${j}</option>`);
+            }
+
+            function crearStats() {
+                return { PJ: 0, puntos: 0, rebotes: 0, asistencias: 0, robos: 0, tapones: 0, perdidas: 0, valoracion: 0,
+                    tiros2Anotados: 0, tiros2Intentados: 0, 
+                    tiros3Anotados: 0, tiros3Intentados: 0,
+                    tirosDeCampoAnotados: 0, tirosDeCampoIntentados: 0, 
+                    tirosLibresAnotados: 0, tirosLibresIntentados: 0 
+                };
+            }
+
+            function acumularStats(t, s) {
+                t.PJ += s.PJ || 0; 
+                t.puntos += s.puntos; t.rebotes += s.rebotes; t.asistencias += s.asistencias;
+                t.robos += s.robos; t.tapones += s.tapones; t.perdidas += s.perdidas;
+                
+                t.valoracion += (s.puntos + s.rebotes + s.asistencias + s.robos + s.tapones) - s.perdidas;
+                
+                t.tiros2Anotados += s.tiros2Anotados; t.tiros2Intentados += s.tiros2Intentados;
+                t.tiros3Anotados += s.tiros3Anotados; t.tiros3Intentados += s.tiros3Intentados;
+                t.tirosDeCampoAnotados += s.tirosDeCampoAnotados; t.tirosDeCampoIntentados += s.tirosDeCampoIntentados;
+                t.tirosLibresAnotados += s.tirosLibresAnotados; t.tirosLibresIntentados += s.tirosLibresIntentados;
+            }
+
+            // --- LÓGICA DE RENDERIZADO Y FILTRADO ---
+            function actualizarResultados() {
+                const fase = faseSelect.value, equipo = equipoSelect.value, jugador = jugadorSelect.value;
+                const estadistica = estadisticaSelect.value, esPromedio = modoPromedioCheck.checked, txt = buscadorInput.value.toLowerCase();
+                
+                const partidos = Object.values(partidosData).filter(p => fase === 'playoffs' ? p.Playoffs === "si" : p.Playoffs === "no");
+                let res = [];
+                
+                if (equipo === "todos_jugadores") {
+                    res = calcTodosJugadores(partidos);
+                    res = aplicarFiltrosYOrden(res, txt, estadistica, esPromedio);
+                    mostrarTablaJugadores(res, estadistica, "Líderes de la Liga", null, esPromedio);
+                } else if (!equipo && !jugador) {
+                    res = calcEquipos(partidos);
+                    res = aplicarFiltrosYOrden(res, txt, estadistica, esPromedio);
+                    mostrarTablaEquipos(res, estadistica, esPromedio);
+                } else if (equipo && equipo !== "todos_jugadores" && !jugador) {
+                    res = calcJugadoresEquipo(partidos, equipo);
+                    res = aplicarFiltrosYOrden(res, txt, estadistica, esPromedio);
+                    mostrarTablaJugadores(res, estadistica, `Plantilla: ${equipo}`, equipo, esPromedio);
+                } else if (equipo && jugador) {
+                    res = calcIndividual(partidos, equipo, jugador);
+                    mostrarIndividual(res, jugador);
+                }
+            }
+
+            // --- FUNCIÓN CENTRALIZADA DE ORDENACIÓN Y FILTRO ---
+            function aplicarFiltrosYOrden(data, busqueda, filtro, esPromedio) {
+                // 1. Filtrar por texto (Buscador)
+                if (busqueda) {
+                    data = data.filter(item => item.nombre.toLowerCase().includes(busqueda));
+                }
+
+                // 2. Calcular porcentajes base para todos
+                data.forEach(item => {
+                    item.pct3 = item.tiros3Intentados > 0 ? Math.round((item.tiros3Anotados/item.tiros3Intentados)*100) : 0;
+                    item.pct2 = item.tiros2Intentados > 0 ? Math.round((item.tiros2Anotados/item.tiros2Intentados)*100) : 0;
+                    item.pctTC = item.tirosDeCampoIntentados > 0 ? Math.round((item.tirosDeCampoAnotados/item.tirosDeCampoIntentados)*100) : 0;
+                    item.pctLibres = item.tirosLibresIntentados > 0 ? Math.round((item.tirosLibresAnotados/item.tirosLibresIntentados)*100) : 0;
+                });
+
+                // 3. Filtros Especiales (Minimos requeridos)
+                if (filtro === 'pct3_threshold') {
+                    data = data.filter(item => item.tiros3Anotados >= 5);
+                } else if (filtro === 'pctTC_threshold') {
+                    data = data.filter(item => item.tirosDeCampoAnotados >= 10);
+                }
+
+                // 4. Determinar clave de ordenación
+                let sortKey = 'puntos'; // Default
+                let usePercentage = false;
+
+                if (filtro === 'valoracion') sortKey = 'valoracion';
+                else if (filtro === 'rebotes') sortKey = 'rebotes';
+                else if (filtro === 'asistencias') sortKey = 'asistencias';
+                else if (filtro === 'tapones') sortKey = 'tapones';
+                else if (filtro === 'robos') sortKey = 'robos';
+                else if (filtro === 'tiros3') sortKey = 'tiros3Anotados';
+                else if (filtro === 'tirosLibresAnotados') sortKey = 'tirosLibresAnotados';
+                else if (filtro === 'tirosCampoAnotados') sortKey = 'tirosDeCampoAnotados';
+                else if (filtro === 'pct3_threshold') { sortKey = 'pct3'; usePercentage = true; }
+                else if (filtro === 'pctTC_threshold') { sortKey = 'pctTC'; usePercentage = true; }
+
+                // 5. ORDENAR (Aquí esta la corrección para promedios)
+                data.sort((a, b) => {
+                    let valA = a[sortKey];
+                    let valB = b[sortKey];
+
+                    // Si estamos en modo promedio Y NO es un porcentaje (los porcentajes ya son promedios)
+                    if (esPromedio && !usePercentage) {
+                        valA = a.PJ > 0 ? valA / a.PJ : 0;
+                        valB = b.PJ > 0 ? valB / b.PJ : 0;
+                    }
+                    return valB - valA;
+                });
+
+                return data;
+            }
+
+            // --- CÁLCULOS (Igual que antes) ---
+            function calcTodosJugadores(partidos) {
+                const stats = {};
+                partidos.forEach(p => { procesar(p.local, p.local.nombre, stats); procesar(p.visitante, p.visitante.nombre, stats); });
+                return Object.entries(stats).map(([nombre, s]) => ({ nombre, ...s }));
+            }
+            function procesar(data, teamName, stats) {
+                Object.entries(data.jugadores).forEach(([n, s]) => {
+                    if (!stats[n]) { stats[n] = crearStats(); stats[n].equipo = teamName; }
+                    acumularStats(stats[n], s);
+                });
+            }
+            function calcEquipos(partidos) {
+                const stats = {};
+                partidos.forEach(p => {
+                    ['local', 'visitante'].forEach(lado => {
+                        const n = p[lado].nombre;
+                        if (!stats[n]) { stats[n] = crearStats(); stats[n].nombre = n; stats[n].PJ = 0; }
+                        stats[n].PJ += 1; 
+                        Object.values(p[lado].jugadores).forEach(s => acumularStats(stats[n], {...s, PJ:0}));
+                    });
+                });
+                return Object.values(stats);
+            }
+            function calcJugadoresEquipo(partidos, target) {
+                const stats = {};
+                partidos.forEach(p => {
+                    const t = p.local.nombre === target ? p.local : (p.visitante.nombre === target ? p.visitante : null);
+                    if (t) Object.entries(t.jugadores).forEach(([n, s]) => {
+                        if (!stats[n]) stats[n] = crearStats();
+                        acumularStats(stats[n], s);
+                    });
+                });
+                return Object.entries(stats).map(([nombre, s]) => ({ nombre, ...s }));
+            }
+            function calcIndividual(partidos, eq, jug) {
+                return partidos.filter(p => (p.local.nombre === eq || p.visitante.nombre === eq) && (p.local.jugadores[jug] || p.visitante.jugadores[jug]))
+                    .map(p => {
+                        const esLocal = p.local.nombre === eq, stats = esLocal ? p.local.jugadores[jug] : p.visitante.jugadores[jug];
+                        const pct = (a, i) => i > 0 ? ((a/i)*100).toFixed(0) + '%' : '0%';
+                        return { 
+                            info: `Jornada ${p.Jornada}`, rival: esLocal ? p.visitante.nombre : p.local.nombre, ...stats,
+                            valoracion: (stats.puntos + stats.rebotes + stats.asistencias + stats.robos + stats.tapones) - stats.perdidas,
+                            pct2: pct(stats.tiros2Anotados, stats.tiros2Intentados), 
+                            pct3: pct(stats.tiros3Anotados, stats.tiros3Intentados),
+                            pctLibres: pct(stats.tirosLibresAnotados, stats.tirosLibresIntentados)
+                        };
+                    });
+            }
+
+            // --- VISUALIZACIÓN ---
+            function getVal(v, g, avg, d=1) { return (!avg) ? v : (g > 0 ? (v/g).toFixed(d) : 0); }
+
+            function mostrarTablaEquipos(data, filtro, avg) {
+                // Cabecera dinámica según filtro
+                let h = `<div class="card"><h3>Estadísticas Equipos ${avg ? '(Promedios)' : '(Totales)'}</h3><div style="overflow-x:auto;"><table><thead><tr>
+                        <th>Equipo</th><th>PTS</th><th>REB</th><th>AST</th><th>ROB</th><th>TAP</th><th>VAL</th>
+                        <th>Tiros 2</th><th>Triples</th><th>Tiros Libres</th>
+                    </tr></thead><tbody>`;
+                
+                data.forEach(d => {
+                    const pj = d.PJ || 1;
+                    h += `<tr><td class="team-cell"><img src="/static/img/equipos/${d.nombre}.jpg" class="team-logo" onerror="this.src='${DEFAULT_IMG}'"><span class="team-name">${d.nombre}</span></td>
+                    <td class="stat-highlight">${getVal(d.puntos, pj, avg)}</td>
+                    <td>${getVal(d.rebotes, pj, avg)}</td>
+                    <td>${getVal(d.asistencias, pj, avg)}</td>
+                    <td>${getVal(d.robos, pj, avg)}</td>
+                    <td>${getVal(d.tapones, pj, avg)}</td>
+                    <td style="color:var(--primary); font-weight:bold;">${getVal(d.valoracion, pj, avg)}</td>
+                    <td>${getVal(d.tiros2Anotados, pj, avg)}/${getVal(d.tiros2Intentados, pj, avg)} <span class="stat-sub">(${d.pct2}%)</span></td>
+                    <td>${getVal(d.tiros3Anotados, pj, avg)}/${getVal(d.tiros3Intentados, pj, avg)} <span class="stat-sub">(${d.pct3}%)</span></td>
+                    <td>${getVal(d.tirosLibresAnotados, pj, avg)}/${getVal(d.tirosLibresIntentados, pj, avg)} <span class="stat-sub">(${d.pctLibres}%)</span></td>
+                    </tr>`;
+                });
+                resultadosDiv.innerHTML = h + '</tbody></table></div></div>';
+            }
+
+            function mostrarTablaJugadores(data, filtro, titulo, eqNom, avg) {
+                let h = `<div class="card"><div style="display:flex;align-items:center;gap:15px;margin-bottom:15px;">${eqNom ? `<img src="/static/img/equipos/${eqNom}.jpg" style="width:50px;" onerror="this.src='${DEFAULT_IMG}'">` : ''}<h3>${titulo} ${avg ? '(Promedios)' : ''}</h3></div><div style="overflow-x:auto;"><table><thead><tr>
+                        <th>Jugador</th>${!eqNom ? '<th>Equipo</th>' : ''}<th>PJ</th>
+                        <th>PTS</th><th>REB</th><th>AST</th><th>ROB</th><th>TAP</th><th>VAL</th>
+                        <th>Tiros 2</th><th>Triples</th><th>Tiros Libres</th>
+                    </tr></thead><tbody>`;
+                
+                if(data.length === 0) {
+                     h += `<tr><td colspan="12" style="padding:20px;">No hay jugadores que cumplan los requisitos.</td></tr>`;
+                }
+
+                data.slice(0,50).forEach(j => {
+                    const pj = j.PJ;
+                    h += `<tr><td style="text-align:left;padding-left:20px;">${j.nombre}</td>${!eqNom ? `<td style="color:#666;font-size:0.9em;">${j.equipo}</td>` : ''}<td>${pj}</td>
+                    <td class="stat-highlight">${getVal(j.puntos, pj, avg)}</td>
+                    <td>${getVal(j.rebotes, pj, avg)}</td>
+                    <td>${getVal(j.asistencias, pj, avg)}</td>
+                    <td>${getVal(j.robos, pj, avg)}</td>
+                    <td>${getVal(j.tapones, pj, avg)}</td>
+                    <td style="color:var(--primary); font-weight:bold;">${getVal(j.valoracion, pj, avg)}</td>
+                    <td>${getVal(j.tiros2Anotados, pj, avg)}/${getVal(j.tiros2Intentados, pj, avg)} <span class="stat-sub">(${j.pct2}%)</span></td>
+                    <td>${getVal(j.tiros3Anotados, pj, avg)}/${getVal(j.tiros3Intentados, pj, avg)} <span class="stat-sub">(${j.pct3}%)</span></td>
+                    <td>${getVal(j.tirosLibresAnotados, pj, avg)}/${getVal(j.tirosLibresIntentados, pj, avg)} <span class="stat-sub">(${j.pctLibres}%)</span></td>
+                    </tr>`;
+                });
+                resultadosDiv.innerHTML = h + '</tbody></table></div></div>';
+            }
+
+            function mostrarIndividual(partidos, jug) {
+                let h = `<div style="text-align:center;margin-bottom:20px;"><h2 style="margin:0;">${jug}</h2></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;">`;
+                partidos.forEach(p => {
+                    h += `<div class="jugador-partido"><h4><span style="float:right;font-size:0.8em;opacity:0.7;">${p.info}</span><span>vs ${p.rival}</span></h4>
+                    <div class="stats-grid">
+                        <div class="stat-box" style="grid-column:span 2;background:#f0f7ff;border-color:var(--primary);"><span>Puntos</span><strong style="font-size:1.8rem;color:var(--primary);">${p.puntos}</strong><div style="font-size:0.85rem;color:#666;font-weight:bold;">Val: ${p.valoracion}</div></div>
+                        <div class="stat-box"><span>Rebotes</span><strong>${p.rebotes}</strong></div>
+                        <div class="stat-box"><span>Asistencias</span><strong>${p.asistencias}</strong></div>
+                        <div class="stat-box"><span>Tapones</span><strong>${p.tapones}</strong></div>
+                        <div class="stat-box"><span>Robos</span><strong>${p.robos}</strong></div>
+                        <div class="stat-box" style="grid-column:span 2;"><span>Tiros 2</span><strong>${p.tiros2Anotados}/${p.tiros2Intentados}</strong> <span>(${p.pct2})</span></div>
+                        <div class="stat-box" style="grid-column:span 2;"><span>Triples</span><strong>${p.tiros3Anotados}/${p.tiros3Intentados}</strong> <span>(${p.pct3})</span></div>
+                        <div class="stat-box" style="grid-column:span 2;"><span>Tiros Libres</span><strong>${p.tirosLibresAnotados}/${p.tirosLibresIntentados}</strong> <span>(${p.pctLibres})</span></div>
+                    </div></div>`;
+                });
+                resultadosDiv.innerHTML = h + '</div>';
+            }
+        });
+    </script>
+</body>
+</html>
